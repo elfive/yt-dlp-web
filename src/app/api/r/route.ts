@@ -57,7 +57,8 @@ export async function GET(request: Request) {
     cutEndTime: videoInfo?.cutEndTime || '',
     outputFilename: videoInfo?.outputFilename || '',
     selectQuality: videoInfo?.selectQuality || '',
-    enableForceKeyFramesAtCuts: videoInfo?.enableForceKeyFramesAtCuts || false
+    enableForceKeyFramesAtCuts: videoInfo?.enableForceKeyFramesAtCuts || false,
+    extraArgs: videoInfo?.extraArgs || []
   });
 
   const stream = new ReadableStream({

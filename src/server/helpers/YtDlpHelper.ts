@@ -84,6 +84,7 @@ export class YtDlpHelper {
     outputFilename: '',
     selectQuality: '',
     enableForceKeyFramesAtCuts: false,
+    extraArgs: [],
     file: {
       name: null,
       path: null
@@ -124,6 +125,7 @@ export class YtDlpHelper {
     outputFilename?: string;
     selectQuality?: SelectQuality;
     enableForceKeyFramesAtCuts?: boolean;
+    extraArgs?: string[];
   }) {
     this.url = querys.url;
     this.pid = querys.pid;
@@ -140,6 +142,7 @@ export class YtDlpHelper {
     this.videoInfo.proxyAddress = querys.proxyAddress || '';
     this.videoInfo.enableLiveFromStart = querys.enableLiveFromStart || false;
     this.videoInfo.outputFilename = querys.outputFilename || '';
+    this.videoInfo.extraArgs = querys.extraArgs || [];
     this.videoInfo.selectQuality = querys.selectQuality || '';
     this.videoInfo.enableForceKeyFramesAtCuts = querys.enableForceKeyFramesAtCuts || false;
 
@@ -308,7 +311,8 @@ export class YtDlpHelper {
     }
 
     return new Promise(async (resolve) => {
-      const downloadOptions = [...options, this.url];
+      // User-supplied yt-dlp options are individual argv entries, never shell-parsed.
+      const downloadOptions = [...options, ...(this.videoInfo.extraArgs || []), this.url];
       const ytdlp = spawn('yt-dlp', downloadOptions, {
         killSignal: 'SIGINT',
         cwd: DOWNLOAD_PATH

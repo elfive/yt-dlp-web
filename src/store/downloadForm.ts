@@ -27,6 +27,7 @@ interface State {
   selectQuality: SelectQuality;
   enableForceKeyFramesAtCuts: boolean;
   subLangs: Array<string>;
+  extraArgsText: string;
 }
 
 interface Store extends State {
@@ -52,6 +53,7 @@ interface Store extends State {
   setOutputFilename: (outputFilename: string) => void;
   setSelectQuality: (selectQuality: SelectQuality) => void;
   setForceKeyFramesAtCuts: (enableForceKeyFramesAtCuts: boolean) => void;
+  setExtraArgsText: (extraArgsText: string) => void;
   loadDownloadedOptions: (video: VideoInfo) => void;
 }
 
@@ -61,6 +63,7 @@ export type DownloadRequestParams = {
   audioId?: string;
   embedSubs?: boolean;
   subLangs?: string[];
+  extraArgs?: string[];
 };
 
 const initialState: State = {
@@ -82,7 +85,8 @@ const initialState: State = {
   outputFilename: '%(title)s (%(id)s)',
   selectQuality: 'best',
   enableForceKeyFramesAtCuts: false,
-  subLangs: []
+  subLangs: [],
+  extraArgsText: ''
 };
 
 export const initialDownloadFormState = { ...initialState };
@@ -109,7 +113,8 @@ export const useDownloadFormStore = createWithEqualityFn(
           enableDownloadNow,
           selectQuality,
           enableForceKeyFramesAtCuts,
-          subLangs
+          subLangs,
+          extraArgsText
         } = get();
         if (!url || !/^https?:\/?\/?/i.test(url)) {
           throw 'Please check url \nex) https://www.youtube.com/xxxxx';
@@ -121,7 +126,8 @@ export const useDownloadFormStore = createWithEqualityFn(
           usingCookies,
           embedChapters,
           enableLiveFromStart,
-          enableForceKeyFramesAtCuts
+          enableForceKeyFramesAtCuts,
+          extraArgs: extraArgsText
         };
 
         if (defaultPrams?.embedSubs && defaultPrams?.subLangs && defaultPrams.subLangs.length > 0) {
@@ -258,6 +264,9 @@ export const useDownloadFormStore = createWithEqualityFn(
       setForceKeyFramesAtCuts(enableForceKeyFramesAtCuts) {
         set({ enableForceKeyFramesAtCuts });
       },
+      setExtraArgsText(extraArgsText) {
+        set({ extraArgsText });
+      },
       loadDownloadedOptions(video) {
         const newOutputFilename =
           video.outputFilename?.replace?.(/\.\%\(ext\)s$/, '') || '%(title)s (%(id)s)';
@@ -309,7 +318,8 @@ export const useDownloadFormStore = createWithEqualityFn(
           // 'cutVideo',
           // 'cutStartTime',
           // 'cutEndTime',
-          'enableForceKeyFramesAtCuts'
+          'enableForceKeyFramesAtCuts',
+          'extraArgsText'
         ];
         if (isDevelopment) {
           keys.push('url', 'enableOutputFilename', 'cutVideo', 'cutStartTime', 'cutEndTime');

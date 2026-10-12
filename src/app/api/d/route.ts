@@ -29,6 +29,10 @@ export async function GET(request: Request) {
   const outputFilename = searchParams.get('outputFilename') || '';
   const selectQuality = (searchParams.get('selectQuality') || '') as SelectQuality;
   const enableForceKeyFramesAtCuts = searchParams.get('enableForceKeyFramesAtCuts') === 'true';
+  const extraArgs = (searchParams.get('extraArgs') || '')
+    .split(/\r?\n/)
+    .map((arg) => arg.trim())
+    .filter((arg) => arg.length > 0);
 
   // const url = context?.params?.url;
 
@@ -88,7 +92,8 @@ export async function GET(request: Request) {
       proxyAddress: typeof proxyAddress === 'string' ? proxyAddress : '',
       outputFilename,
       selectQuality: !videoId && !audioId ? selectQuality : '',
-      enableForceKeyFramesAtCuts
+      enableForceKeyFramesAtCuts,
+      extraArgs
     });
     const videoInfo = ytdlp.getVideoInfo();
 

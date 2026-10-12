@@ -18,6 +18,7 @@ import { CookiesEditor } from '@/components/modules/CookiesEditor';
 import { shallow } from 'zustand/shallow';
 import { PatternFormat } from 'react-number-format';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -154,6 +155,7 @@ const DownloadForm = memo(({ onSubmit }: DownloadFormProps) => {
       </Card>
       <LiveFromStartOption />
       <ProxyOption />
+      <ExtraYtDlpOptions />
     </form>
   );
 }, isPropsEquals);
@@ -1004,3 +1006,39 @@ const SearchedMetadataCard = memo(({ metadata }: SearchedMetadataCardProps) => {
 }, isPropsEquals);
 
 SearchedMetadataCard.displayName = 'SearchedMetadataCard';
+
+
+/**
+ * Optional extra yt-dlp command-line arguments.
+ * Enter one argv item per line; option values containing spaces stay on one line.
+ */
+const ExtraYtDlpOptions = () => {
+  const { hydrated, extraArgsText, setExtraArgsText } = useDownloadFormStore(
+    ({ hydrated, extraArgsText, setExtraArgsText }) => ({
+      hydrated,
+      extraArgsText,
+      setExtraArgsText
+    }),
+    shallow
+  );
+
+  return (
+    <div className='flex flex-col gap-y-1'>
+      <Label htmlFor='extraYtDlpArgs' className='pl-1 text-sm'>
+        Extra yt-dlp arguments (one argument per line)
+      </Label>
+      <Textarea
+        id='extraYtDlpArgs'
+        value={extraArgsText}
+        disabled={!hydrated}
+        onChange={(event) => setExtraArgsText(event.target.value)}
+        placeholder={'--embed-metadata\n--write-thumbnail\n--merge-output-format\nmp4'}
+        className='min-h-[88px] font-mono text-xs'
+      />
+      <p className='pl-1 text-xs text-muted-foreground'>
+        Enter one argument per line. For options that take a value, put the option and value on
+        separate lines. Do not include shell quotes.
+      </p>
+    </div>
+  );
+};
