@@ -14,6 +14,10 @@ export async function GET(request: Request, context: { params: { url: string } }
   const usingCookies = searchParams.get('usingCookies') === 'true';
   const enableProxy = searchParams.get('enableProxy') === 'true';
   const proxyAddress = searchParams.get('proxyAddress') || '';
+  const extraArgs = (searchParams.get('extraArgs') || '')
+    .split(/\r?\n/)
+    .map((arg) => arg.trim())
+    .filter((arg) => arg.length > 0);
   // const url = context?.params?.url;
   // const abortController = new AbortController();
   // const { signal } = abortController;
@@ -33,7 +37,8 @@ export async function GET(request: Request, context: { params: { url: string } }
       url,
       usingCookies,
       enableProxy,
-      proxyAddress: typeof proxyAddress === 'string' ? proxyAddress : ''
+      proxyAddress: typeof proxyAddress === 'string' ? proxyAddress : '',
+      extraArgs
     });
 
     const metadata = await ytdlp.getMetadata();

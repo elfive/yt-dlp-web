@@ -170,7 +170,7 @@ export const useDownloadFormStore = createWithEqualityFn(
         return result as AxiosResponse<DownloadResponse>;
       },
       async getMetadata() {
-        const { url, usingCookies, enableProxy, proxyAddress } = get();
+        const { url, usingCookies, enableProxy, proxyAddress, extraArgsText } = get();
         if (!url || !/^https?:\/?\/?/i.test(url)) {
           throw 'Please check url \nex) https://www.youtube.com/xxxxx';
         }
@@ -180,7 +180,8 @@ export const useDownloadFormStore = createWithEqualityFn(
               url,
               usingCookies,
               enableProxy,
-              proxyAddress
+              proxyAddress,
+              extraArgs: extraArgsText
             }
           })
           .then((res) => res.data)
@@ -189,7 +190,7 @@ export const useDownloadFormStore = createWithEqualityFn(
         return metadata as VideoMetadata;
       },
       async getSubtitles() {
-        const { url, usingCookies, enableProxy, proxyAddress } = get();
+        const { url, usingCookies, enableProxy, proxyAddress, extraArgsText } = get();
         if (!url || !/^https?:\/?\/?/i.test(url)) {
           throw 'Please check url \nex) https://www.youtube.com/xxxxx';
         }
@@ -199,7 +200,8 @@ export const useDownloadFormStore = createWithEqualityFn(
               url,
               usingCookies,
               enableProxy,
-              proxyAddress
+              proxyAddress,
+              extraArgs: extraArgsText
             }
           })
           .then((res) => res.data)
@@ -291,7 +293,10 @@ export const useDownloadFormStore = createWithEqualityFn(
           enableProxy: video.enableProxy ?? initialState.enableProxy,
           proxyAddress: video.enableProxy
             ? video.proxyAddress ?? initialState.proxyAddress
-            : initialState.proxyAddress
+            : initialState.proxyAddress,
+          extraArgsText: Array.isArray(video.extraArgs)
+            ? video.extraArgs.join('\n')
+            : initialState.extraArgsText
         };
         set({
           ...newOptions

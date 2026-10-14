@@ -650,8 +650,8 @@ const EmbedSubtitlesOption = () => {
 type SubtitleListProps = { url: string };
 
 function SubtitleList({ url }: SubtitleListProps) {
-  const { subLangs, setSubLangs } = useDownloadFormStore(
-    ({ subLangs, setSubLangs }) => ({ subLangs, setSubLangs }),
+  const { subLangs, setSubLangs, extraArgsText } = useDownloadFormStore(
+    ({ subLangs, setSubLangs, extraArgsText }) => ({ subLangs, setSubLangs, extraArgsText }),
     shallow
   );
   const {
@@ -661,7 +661,7 @@ function SubtitleList({ url }: SubtitleListProps) {
     error,
     mutate
   } = useSWR(
-    `/api/info?url=${encodeURIComponent(url)}`,
+    `/api/info?url=${encodeURIComponent(url)}&extraArgs=${encodeURIComponent(extraArgsText)}`,
     async () => {
       const getSubtitles = useDownloadFormStore.getState().getSubtitles;
 

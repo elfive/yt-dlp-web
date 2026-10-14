@@ -39,6 +39,126 @@ const ffmpegProgressTrackingRegex =
 const cutsTimeRegex = /^[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{2}$/;
 
 /**
+ * yt-dlp options that are meaningless during the `--dump-single-json` resolve
+ * phase. Some would replace the JSON dump on stdout (listing/dumping/printing
+ * modes) and others only apply while actually downloading or post-processing
+ * (and a few, like `--embed-subs`, even fail yt-dlp's option validation in
+ * simulate mode). They are stripped from the resolve phase only; the download
+ * phase still receives the full `extraArgs` list.
+ *
+ * Network / identity options (`--impersonate`, `--cookies`, `--proxy`,
+ * `--extractor-args`, headers, ...) are intentionally kept so the extractor
+ * request can pass bot protections such as MissAV's Cloudflare.
+ */
+const metadataExcludedOptions = new Set<string>([
+  // Output-mode switches: they replace the JSON dump on stdout.
+  '--list-formats',
+  '-F',
+  '--list-subs',
+  '--list-thumbnails',
+  '--list-descriptions',
+  '--dump-json',
+  '-j',
+  '--dump-single-json',
+  '-J',
+  '--get-url',
+  '--get-title',
+  '--get-id',
+  '--get-thumbnail',
+  '--get-description',
+  '--get-duration',
+  '--get-filename',
+  '--get-format',
+  '--print',
+  '-O',
+  '--print-to-file',
+  // Download / post-processing only options.
+  '--embed-subs',
+  '--embed-chapters',
+  '--embed-metadata',
+  '--embed-thumbnail',
+  '--embed-info-json',
+  '--write-subs',
+  '--write-auto-subs',
+  '--write-thumbnail',
+  '--write-description',
+  '--write-info-json',
+  '--write-annotations',
+  '--write-comments',
+  '--write-link',
+  '--write-url-link',
+  '--write-webloc-link',
+  '--write-desktop-link',
+  '--convert-subs',
+  '--convert-thumbnails',
+  '--recode-video',
+  '--remux-video',
+  '--downloader',
+  '--downloader-args'
+]);
+
+/**
+ * Options in the list above that consume the following argv entry as their
+ * value; the value must be dropped together with the option.
+ */
+const metadataExcludedOptionsWithValue = new Set<string>([
+  '--print',
+  '-O',
+  '--print-to-file',
+  '--convert-subs',
+  '--convert-thumbnails',
+  '--recode-video',
+  '--remux-video',
+  '--downloader',
+  '--downloader-args'
+]);
+
+const toMetadataArgs = (extraArgs: string[]): string[] => {
+  const args: string[] = [];
+  let skipNextValue = false;
+  for (const arg of extraArgs || []) {
+    if (skipNextValue) {
+      skipNextValue = false;
+      continue;
+    }
+    const name = arg.includes('=') ? arg.split('=')[0] : arg;
+    if (metadataExcludedOptions.has(name)) {
+      if (metadataExcludedOptionsWithValue.has(name) && !arg.includes('=')) {
+        skipNextValue = true;
+      }
+      continue;
+    }
+    args.push(arg);
+  }
+  return args;
+};
+
+/**
+ * `--dump-single-json` prints the info dict as a single JSON line, but
+ * user-supplied args (e.g. `--print ...`) may emit other lines to stdout.
+ * Fall back to the first line that parses as a yt-dlp info dict.
+ */
+const parseMetadataJson = (output: string): any => {
+  try {
+    return JSON.parse(output);
+  } catch (err) {
+    for (const line of output.split('\n')) {
+      const trimmed = line?.trim?.();
+      if (!trimmed) {
+        continue;
+      }
+      try {
+        const json = JSON.parse(trimmed);
+        if (json && typeof json === 'object' && ('_type' in json || 'id' in json)) {
+          return json;
+        }
+      } catch (e) {}
+    }
+    throw err;
+  }
+};
+
+/**
  *
  * @param timeString '02:04:03' or '02:04:03.33'
  * @returns minutes(number)
@@ -387,9 +507,24 @@ export class YtDlpHelper {
       options.push('--proxy', this.videoInfo?.proxyAddress);
     }
 
+    // The resolve phase must also carry the user-supplied arguments (e.g.
+    // `--impersonate chrome` or `--cookies <path>`). Sites like MissAV sit
+    // behind Cloudflare and block the plain extractor request, so omitting
+    // these here made both the preview and the download itself fail before
+    // any file was fetched. Args are individual argv entries passed directly
+    // to spawn (no shell parsing), the same as in the download phase; only
+    // options that are meaningless during resolution are dropped.
+    options.push(...toMetadataArgs(this.videoInfo?.extraArgs || []));
+
     options.push(this.url);
 
     const ytdlp = spawn('yt-dlp', options);
+
+    console.info(
+      `[${new Date().toISOString()}] [get metadata] [yt-dlp pid: ${ytdlp.pid}]`,
+      'metadataOptions:',
+      JSON.stringify(options)
+    );
 
     ytdlp.stdout.on('data', (data) => {
       stdoutChunks.push(data);
@@ -412,7 +547,7 @@ export class YtDlpHelper {
             reject(stderrMessage || 'Not found. Please check the url again.');
             return;
           }
-          const json = JSON.parse(buffer.toString());
+          const json = parseMetadataJson(buffer.toString());
           const type = json?._type;
 
           switch (type) {
