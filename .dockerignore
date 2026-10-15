@@ -1,0 +1,29 @@
+# Dependencies are installed inside the image with `npm ci`;
+# never copy a host-machine node_modules (platform-specific native
+# binaries such as bcrypt_lib.node would break the Linux image).
+node_modules
+
+# Next.js build output is regenerated inside the image.
+.next
+out
+
+# Local tooling / caches / logs
+.npm-cache
+.git
+.github
+.vercel
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Local environment files
+.env
+.env.*.local
+
+# Not needed at build time
+Dockerfile
+.dockerignore
+docker-compose*.yml
+README.md
