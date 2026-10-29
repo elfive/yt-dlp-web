@@ -1,9 +1,9 @@
 
 services:
   yt-dlp-webui:
-    image: elfive/yt-dlp-web:latest
-    build:
-      context: ./src
+    image: ${GLOBAL_PERSONAL_HUB:-hub.example.com/}elfive/yt-dlp-web:latest
+    # build:
+    #   context: ./src
     container_name: yt-dlp
     user: 0:0 # User Id, Group Id Setting
     network_mode: host
