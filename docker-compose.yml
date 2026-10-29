@@ -1,24 +1,20 @@
-
 services:
   yt-dlp-webui:
-    image: ${GLOBAL_PERSONAL_HUB:-hub.example.com/}elfive/yt-dlp-web:latest
+    image: ${GLOBAL_PERSONAL_HUB:-}elfive/yt-dlp-web:latest
     # build:
     #   context: ./src
     container_name: yt-dlp
-    user: 0:0 # User Id, Group Id Setting
+    restart: always
     network_mode: host
+    user: 0:0 # User Id, Group Id Setting
     environment:
-      - TZ=Asia/Shanghai
+      - TZ=${GLOBAL_TZ:-Asia/Shanghai}
     volumes:
       # - /etc/localtime:/etc/localtime
       - /opt/data/container/yt-dlp-webui/plugins:/usr/local/bin/yt-dlp-plugins
       - /opt/data/container/yt-dlp-webui/config:/etc/yt-dlp/config:r
       - /opt/data/container/yt-dlp-webui/cache:/cache
       - /opt/download/yt-dlp:/downloads
-    restart: always
     logging:
-      driver: json-file
       options:
         max-size: 10m
-    # dns:
-    #   - 192.168.88.1
