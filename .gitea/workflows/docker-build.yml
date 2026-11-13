@@ -43,8 +43,13 @@ jobs:
           curl -fsS -X POST "${{ vars.PREBUILD_WEBHOOK_URL }}"
 
       - name: Checkout code
-        if: ${{ !cancelled() }}
+        id: checkout
         uses: actions/checkout@v4
+        continue-on-error: true
+
+      - name: Checkout code using builtin runner
+        if: ${{ steps.checkout.outcome == 'failure' }}
+        uses: builtin:checkout
 
       - name: Login to private registry
         run: |
