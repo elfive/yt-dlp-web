@@ -22,7 +22,23 @@ jobs:
       image: catthehacker/ubuntu:act-latest
 
     steps:
+      - id: Check Envirements Variables
+        run: |
+          if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_URL }}" ]; then
+            echo "secrets.PERSONAL_DOCKER_HUB_URL is not defined"
+            exit 1
+          fi
+          if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_USERNAME }}" ]; then
+            echo "secrets.PERSONAL_DOCKER_HUB_USERNAME is not defined"
+            exit 1
+          fi
+          if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_PASSWORD }}" ]; then
+            echo "secrets.PERSONAL_DOCKER_HUB_PASSWORD is not defined"
+            exit 1
+          fi
+          
       - name: Notify before build
+        if: ${{ vars.PREBUILD_WEBHOOK_URL != '' }}
         run: |
           curl -fsS -X POST "${{ vars.PREBUILD_WEBHOOK_URL }}"
 
@@ -52,6 +68,6 @@ jobs:
           echo "push ${{ vars.IMAGE_TAG }}:latest to ${{ vars.PERSONAL_DOCKER_HUB_URL }} success."
       
       - name: Notify after success
-        if: success()
+        if: ${{ vars.POSTBUILD_WEBHOOK_URL != '' }}
         run: |
           curl -fsS -X POST "${{ vars.POSTBUILD_WEBHOOK_URL }}"
