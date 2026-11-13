@@ -24,12 +24,12 @@ jobs:
     steps:
       - id: Check Envirements Variables
         run: |
-          if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_URL }}" ]; then
-            echo "secrets.PERSONAL_DOCKER_HUB_URL is not defined"
+          if [ -z "${{ vars.PERSONAL_DOCKER_HUB_URL }}" ]; then
+            echo "vars.PERSONAL_DOCKER_HUB_URL is not defined"
             exit 1
           fi
-          if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_USERNAME }}" ]; then
-            echo "secrets.PERSONAL_DOCKER_HUB_USERNAME is not defined"
+          if [ -z "${{ vars.PERSONAL_DOCKER_HUB_USERNAME }}" ]; then
+            echo "vars.PERSONAL_DOCKER_HUB_USERNAME is not defined"
             exit 1
           fi
           if [ -z "${{ secrets.PERSONAL_DOCKER_HUB_PASSWORD }}" ]; then
