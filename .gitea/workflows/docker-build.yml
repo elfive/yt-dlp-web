@@ -1,0 +1,56 @@
+name: Build and push Docker image
+
+on:
+  push: &trigger
+    branches:
+      - main
+    paths-ignore:
+      - '.gitea/**'
+      - '.dockerignore'
+      - '.eslintrc.json'
+      - '.gitignore'
+      - '.prettierrc.json'
+      - 'README.md'
+
+  pull_request: *trigger
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    container:
+      image: catthehacker/ubuntu:act-latest
+
+    steps:
+      - name: Notify before build
+        run: |
+          curl -fsS -X POST "${{ vars.PREBUILD_WEBHOOK_URL }}"
+
+      - name: Checkout code
+        if: ${{ !cancelled() }}
+        uses: actions/checkout@v4
+
+      - name: Login to private registry
+        run: |
+          echo "${{ secrets.PERSONAL_DOCKER_HUB_PASSWORD }}" | \
+            docker login "${{ vars.PERSONAL_DOCKER_HUB_URL }}" \
+              --username "${{ vars.PERSONAL_DOCKER_HUB_USERNAME }}" \
+              --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            -t "${{ vars.IMAGE_TAG }}:latest" \
+            .
+
+      - name: Push image
+        run: |
+          docker push "${{ vars.IMAGE_TAG }}:latest"
+
+      - name: Show result
+        run: |
+          echo "push ${{ vars.IMAGE_TAG }}:latest to ${{ vars.PERSONAL_DOCKER_HUB_URL }} success."
+      
+      - name: Notify after success
+        if: success()
+        run: |
+          curl -fsS -X POST "${{ vars.POSTBUILD_WEBHOOK_URL }}"
