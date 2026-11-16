@@ -44,7 +44,7 @@ jobs:
 
       - name: Checkout code
         id: checkout
-        uses: actions/checkout@v4
+        uses: https://gitea.elfive.cn:91/actions/checkout@v4
         continue-on-error: true
 
       - name: Checkout code using builtin runner
