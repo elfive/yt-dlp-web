@@ -61,16 +61,16 @@ jobs:
       - name: Build image
         run: |
           docker build \
-            -t "${{ vars.IMAGE_TAG }}:latest" \
+            -t "${{ vars.IMAGE_TAG }}" \
             .
 
       - name: Push image
         run: |
-          docker push "${{ vars.IMAGE_TAG }}:latest"
+          docker push "${{ vars.IMAGE_TAG }}"
 
       - name: Show result
         run: |
-          echo "push ${{ vars.IMAGE_TAG }}:latest to ${{ vars.PERSONAL_DOCKER_HUB_URL }} success."
+          echo "push ${{ vars.IMAGE_TAG }} to ${{ vars.PERSONAL_DOCKER_HUB_URL }} success."
       
       - name: Notify after success
         if: ${{ vars.POSTBUILD_WEBHOOK_URL != '' }}
