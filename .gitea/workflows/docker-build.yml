@@ -44,12 +44,7 @@ jobs:
 
       - name: Checkout code
         id: checkout
-        uses: https://gitea.elfive.cn:91/actions/checkout@v4
-        continue-on-error: true
-
-      - name: Checkout code using builtin runner
-        if: ${{ steps.checkout.outcome == 'failure' }}
-        uses: builtin:checkout
+        uses: ${{ vars.GLOBAL_GITEA_URL }}/actions/checkout@v4
 
       - name: Login to private registry
         run: |
@@ -59,10 +54,12 @@ jobs:
               --password-stdin
 
       - name: Build image
+        env:
+          HTTP_PROXY: ${{ vars.GLOBAL_HTTP_PROXY }}
+          HTTPS_PROXY: ${{ vars.GLOBAL_HTTPS_PROXY }}
+          NO_PROXY: ${{ vars.GLOBAL_NO_PROXY }}
         run: |
-          docker build \
-            -t "${{ vars.IMAGE_TAG }}" \
-            .
+          docker build -t "${{ vars.IMAGE_TAG }}" .
 
       - name: Push image
         run: |
